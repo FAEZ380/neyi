@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
+    <title>Report Details for {{ ddate }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4; /* Light background for contrast */
+        }
+
+        h1 {
+            color: #333;
+            text-align: center; /* Center header */
+        }
+
+        .table-container {
+            max-height: 400px; /* Set a max height for scrolling */
+            overflow-y: auto; /* Enable vertical scrolling */
+            margin: 20px auto; /* Center container */
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+            background-color: #fff; /* White background for contrast */
+            padding: 10px; /* Padding around the table */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px; /* Increased padding for better spacing */
+            text-align: left;
+            border-bottom: 1px solid #ccc; /* Light border for table rows */
+        }
+
+        th {
+            background-color: #4CAF50; /* Green header */
+            color: white; /* White text for header */
+        }
+
+        tr:hover {
+            background-color: #f2f2f2; /* Highlight row on hover */
+        }
+
+        .back-button {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff; /* Bootstrap primary blue */
+            color: white;
+            text-decoration: none; /* Remove underline from link */
+            transition: background-color 0.3s; /* Smooth transition */
+        }
+
+        .back-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+    </style>
+</head>
+<body>
+    <h1>Report Details for {{ ddate }}</h1>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Amount (USD)</th>
+                    <th>Sucursal</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                    <tr>
+                        <td>{{ report['username'] }}</td>
+                        <td>${{ report['amount'] }}</td>
+                        <td>{{ report['sucursal'] }}</td>
+                        <td>{{ report['date'] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <a class="back-button" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+</body>
+</html>

@@ -5,175 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seller Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function confirmReport() {
+            const amountInput = document.getElementById('amount');
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount < 0.1) {
+                alert('MINIMO 0.1 USD PARE REPORTAR.');
+                return false; // Prevent form submission
+            }
+            return confirm(`ESTA SEGURO ENVIAR REPORTE POR : ${amount.toFixed(2)} USD?`);
+        }
+    </script>
     <style>
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgb(0,0,0); /* Fallback color */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        .logout-button {
+            position: absolute; /* Position it in the top right corner */
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px; /* Add padding */
+            background-color: #f44336; /* Red background */
+            color: white; /* White text */
+            font-size: 16px; /* Font size */
+            border: none; /* No border */
+            border-radius: 5px; /* Rounded corners */
+            text-decoration: none; /* No underline */
+            transition: background-color 0.3s; /* Smooth background change */
         }
 
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto; /* 15% from the top and centered */
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%; /* Could be more or less, depending on screen size */
-            text-align: center;
-        }
-
-        .modal-header {
-            font-size: 24px; /* Header font size */
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-        }
-
-        .modal-footer button {
-            padding: 10px 20px;
-            cursor: pointer;
-        }
-
-        .flashes {
-            color: red; /* Flash message color */
-        }
-
-        /* Error styling */
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
-
-        /* Scrollable report list */
-        .report-list {
-            max-height: 300px; /* Set a maximum height for the report list */
-            overflow-y: auto; /* Enable vertical scrolling */
-            border: 1px solid #ccc; /* Optional: add a border */
-            padding: 10px; /* Optional: add some padding */
-        }
-
-        table {
-            width: 100%; /* Full width for the table */
-            border-collapse: collapse; /* Collapse borders for the table */
-        }
-
-        th, td {
-            border: 1px solid #ccc; /* Border for cells */
-            padding: 8px; /* Padding inside cells */
-            text-align: left; /* Align text to the left */
-        }
-
-        th {
-            background-color: #f2f2f2; /* Header background color */
+        .logout-button:hover {
+            background-color: #d32f2f; /* Darker red on hover */
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Seller Dashboard</h1>
-        <nav>
-            <a href="{{ url_for('logout') }}">Logout</a>
-        </nav>
-    </header>
-
-    <div class="report-form">
-        <h2>Submit Report</h2>
-        <form id="reportForm" action="{{ url_for('report') }}" method="post" onsubmit="return confirmReport();">
-            <input type="number" name="amount" id="amount" placeholder="Amount (USD)" required min="0.1" step="0.01">
-            <div id="error-message" class="error"></div>
-            <button type="submit">Submit Report</button>
-        </form>
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <ul class="flashes">
-                {% for message in messages %}
-                    <li>{{ message }}</li>
-                {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
-    </div>
+    <h1>Dashboard del Vendedor</h1>
     
-    <div class="report-list">
-        <h2>Tus Reportes</h2>
+    <!-- Logout Button -->
+    <a href="{{ url_for('logout') }}" class="logout-button">CERRAR SESIÓN</a>
+
+    <div class="report-input">
+        <form method="POST" action="{{ url_for('seller_dashboard') }}" onsubmit="return confirmReport()">
+            <label for="amount">VENTAS DOLARES (USD):</label>
+            <input type="number" id="amount" step="0.01" name="amount" required aria-label="Ingrese el monto de ventas en dólares" title="Monto mínimo 0.1 USD">
+            <button type="submit" class="submit-button">SUBIR REPORTE</button>
+        </form>
+    </div>
+
+    <h2>Sus Reportes</h2>
+    <div class="report-history">
         <table>
-            <tr>
-                <th>Date</th>
-                <th>Amount (USD)</th>
-                <th>Time</th>
-            </tr>
-            {% for report in reports %}
-            <tr>
-                <td>{{ report.date }}</td>
-                <td>{{ report.amount }}</td>
-                <td>{{ report.time }}</td>
-            </tr>
-            {% endfor %}
+            <thead>
+                <tr>
+                    <th>Fecha de Reporte (Ddate)</th>
+                    <th>Fecha de Registro</th>
+                    <th>Hora</th>
+                    <th>Monto (USD)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if reports|length == 0 %}
+                    <tr>
+                        <td colspan="4">No hay reportes para mostrar.</td>
+                    </tr>
+                {% else %}
+                    {% for report in reports %}
+                    <tr>
+                        <td>{{ report.Ddate }}</td> <!-- Display the effective report date -->
+                        <td>{{ report.date }}</td>  <!-- Original submission date -->
+                        <td>{{ report.time }}</td>
+                        <td>{{ report.amount }}</td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
         </table>
     </div>
 
-    <!-- Confirmation Modal -->
-    <div id="confirmationModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Confirm Submission</h2>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
             </div>
-            <p>ESTAS SEGURO EL MONTO REPORTADO ES EL CORRECTO?</p>
-            <p>Amount: <span id="confirmAmount"></span> USD</p>
-            <div class="modal-footer">
-                <button onclick="submitForm()">SI</button>
-                <button onclick="closeModal()">NO</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Function to show the confirmation modal
-        function confirmReport() {
-            const amountInput = document.getElementById("amount");
-            const amount = parseFloat(amountInput.value);
-            const errorMessage = document.getElementById("error-message");
-
-            // Clear previous error message
-            errorMessage.textContent = "";
-
-            // Validate that the amount is positive
-            if (amount <= 0) {
-                errorMessage.textContent = "Please enter a positive amount.";
-                return false; // Prevent form submission
-            }
-
-            document.getElementById("confirmAmount").innerText = amount;
-            document.getElementById("confirmationModal").style.display = "block";
-            return false; // Prevent form submission
-        }
-
-        // Function to submit the form
-        function submitForm() {
-            document.getElementById("reportForm").submit();
-        }
-
-        // Function to close the modal
-        function closeModal() {
-            document.getElementById("confirmationModal").style.display = "none";
-        }
-
-        // Close the modal if the user clicks outside of it
-        window.onclick = function(event) {
-            const modal = document.getElementById("confirmationModal");
-            if (event.target == modal) {
-                closeModal();
-            }
-        }
-    </script>
+        {% endif %}
+    {% endwith %}
 </body>
 </html>
