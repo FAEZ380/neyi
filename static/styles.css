@@ -1,0 +1,117 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #dddddd;
+    margin: 0;
+    padding: 0;
+    height: 100vh; /* Set height to full viewport height */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+header {
+    background: #35424a;
+    color: #f8f8f8;
+    padding: 10px 0;
+    text-align: center;
+}
+
+.container {
+    padding: 20px;
+}
+
+/* Navigation Styles */
+nav {
+    text-align: center; /* Center the nav content */
+}
+
+nav a {
+    color: #f8f8f8; /* Change the logout link color to light gray */
+    text-decoration: none; /* Remove underline from links */
+    padding: 10px; /* Add padding around the link */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
+}
+
+nav a:hover {
+    background-color: #35424a; /* Darker background on hover */
+    color: #01b40a; /* Change text color on hover */
+}
+
+.login-container {
+    max-width: 300px;
+    padding: 20px;
+    background: #f1efef;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(68, 230, 4, 0.1);
+}
+
+/* Button Styles */
+.login-button {
+    display: inline-block; /* Allow padding around the button */
+    width: 100%;
+    padding: 10px;
+    background: #01b40a; /* Green background */
+    color: #a1eb19; /* Light green text */
+    text-align: center; /* Center text */
+    border: none;
+    border-radius: 5px;
+    text-decoration: none; /* Remove underline */
+    font-size: 18px; /* Increase font size */
+    transition: background-color 0.3s; /* Smooth transition for hover */
+}
+
+.login-button:hover {
+    background-color: #018b0a; /* Darker green on hover */
+}
+
+/* Report Overview Styles */
+.reports-overview, .report-list {
+    max-width: 800px;
+    margin: 20px auto;
+    background: #cae785;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #142aa7;
+    text-align: left;
+}
+
+.date-box {
+    margin: 20px 0;
+}
+
+/* Additional Styles */
+h1 {
+    font-size: 2.5em; /* Adjust header size */
+}
+
+h2, h3 {
+    color: #129df3; /* Set color for subheadings */
+}
+
+p {
+    margin: 10px 0;
+    font-size: 1em; /* Standard paragraph size */
+}
+
+/* Make the styles responsive */
+@media (max-width: 600px) {
+    .login-container {
+        width: 90%; /* Full width on small screens */
+    }
+
+    h1 {
+        font-size: 2em; /* Smaller header size on mobile */
+    }
+}

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branch Reports for {{ branch }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        header {
+            background: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 1.1em;
+        }
+        .report-container {
+            margin-top: 20px;
+        }
+        .report-container h2 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .reports-grid-container {
+            max-height: 400px; /* Adjust the height as needed */
+            overflow-y: auto;
+            width: 100%;
+        }
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+        .date-box {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .date-box:hover {
+            background-color: #f0f0f0;
+        }
+        .total-amount {
+            font-weight: bold;
+            color: black;
+            font-size: 1.2em;
+        }
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>REPORTE SUCURSAL {{ branch }}</h1>
+        <nav>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+    </header>
+    
+    <div class="report-container">
+        <h2>Reports Overview</h2>
+        
+        {% if grouped_reports %}
+            <div class="reports-grid-container">
+                <div class="reports-grid">
+                    {% for date, reports in grouped_reports.items() %}
+                        <div class="date-box" onclick="openReportInNewTab('{{ date }}')">
+                            <h3>Date: {{ date }}</h3>
+                            <p class="total-amount">
+                                Total Sales: {{ reports | map(attribute='amount') | map('float') | sum | round(2) }} USD
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <p>No reports available for this branch.</p>
+        {% endif %}
+    </div>
+    
+    <footer>
+        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+        <p>&copy; Gabo</p>
+    </footer>
+
+    <script>
+        function openReportInNewTab(date) {
+            const branch = "{{ branch }}"; // Get the current branch
+            // Adjusted the URL to point to the new route
+            window.open("{{ url_for('report_detail') }}?branch=" + branch + "&date=" + date, "_blank");
+        }
+    </script>
+</body>
+</html>

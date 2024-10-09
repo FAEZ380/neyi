@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>GABO ACCOUNT SERVICE</h1>
+    </header>
+    <div class="container">
+        <div class="login-container">
+            <nav>
+                <a class="login-button" href="{{ url_for('login') }}">INGRESAR</a>
+            </nav>
+        </div>
+    </div>
+</body>
+</html>
