@@ -51,9 +51,10 @@ def update_reports_with_ddate():
         # Add Ddate logic based on your requirements
         if report['time'] >= "18:00:00":  # Assuming time is in HH:MM:SS format
             # Adjust Ddate logic according to your needs
-            report['Ddate'] = (datetime.strptime(report['date'], '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
-        else:
             report['Ddate'] = report['date']
+            
+        else:
+           report['Ddate'] = (datetime.strptime(report['date'], '%Y-%m-%d') - timedelta(days=1)).strftime('%Y-%m-%d')
 
         updated_reports.append(report)
 
@@ -105,9 +106,9 @@ def seller_dashboard():
 
         # Determine effective report date (Ddate) based on current time
         if now.hour >= 18:  # After 6 PM
-            effective_report_date = (now + timedelta(days=1)).strftime('%Y-%m-%d')  # Next day
-        else:
-            effective_report_date = now.strftime('%Y-%m-%d')
+            effective_report_date =  now.strftime('%Y-%m-%d')  #  current date 
+        elif   now.hour <18   :
+            effective_report_date = (now - timedelta(days=1)).strftime('%Y-%m-%d')  # day before 
 
         # Check if there is already a report for the effective report date
         existing_report = next((report for report in user_reports if report['Ddate'] == effective_report_date), None)
@@ -216,4 +217,6 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+     app.run(debug=True)
+
+    

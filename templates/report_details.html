@@ -72,10 +72,12 @@
         <table>
             <thead>
                 <tr>
-                    <th>Username</th>
-                    <th>Amount (USD)</th>
+                    <th>QUIEN HIZO EL REPORTE</th>
+                    <th>MONTO (USD)</th>
                     <th>Sucursal</th>
-                    <th>Date</th>
+                    <th>FECHA DEL REPORTE</th>
+                    <th>TIEMPO DEL REPORTE ACTUAL</th>
+                    <th>FECHA PARA SUMATORIA TOTAL</th>
                 </tr>
             </thead>
             <tbody>
@@ -85,6 +87,8 @@
                         <td>${{ report['amount'] }}</td>
                         <td>{{ report['sucursal'] }}</td>
                         <td>{{ report['date'] }}</td>
+                        <td>{{ report['time'] }}</td>
+                        <td>{{ report['Ddate'] }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
