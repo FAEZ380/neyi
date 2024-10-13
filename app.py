@@ -8,87 +8,128 @@ from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = 'your_secure_key'  # Change to a secure key in production
-# Update payment amount
-#RESUMEN DE VENTAS 
-def update_payment(item_id, additional_amount):
-    updated_sales = []
-    item_found = False
 
-    # Read the existing sales data
+def read_sales_data():
     with open('sales.csv', mode='r') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            if row['ID'] == str(item_id):
-                item_found = True
-                try:
-                    current_amount = float(row['MONTOPAGADO'])
-                    new_amount = current_amount + additional_amount
-                    row['MONTOPAGADO'] = new_amount
+        return list(csv.DictReader(file))
 
-                    # Update status based on new amount
-                    row['STATUS'] = 'VENDIDO' if new_amount >= float(row['VENTACOP']) else 'DEUDA'
-                except ValueError as e:
-                    print(f"Error converting amounts for item ID: {item_id}. Error: {e}")
-            updated_sales.append(row)
-
-    # Write the updated sales data back to the CSV
+def write_sales_data(updated_sales):
     with open('sales.csv', mode='w', newline='') as file:
-        fieldnames = ["MARCA","NOMBREPRODUCTO", "CAMBIOCOP", "PRECIOUSD", "PRECIOCOP", 
-                      "VENTACOP", "TALLA", "COLOR", "PIEZA", "ID", 
-                      "CLIENTE", "METODOPAGO", "MONTOPAGADO", "STATUS"]
+        fieldnames = updated_sales[0].keys()  # Get fieldnames from the first row
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(updated_sales)
 
+def update_csv(item_id, update_data):
+    updated_sales = []
+    item_found = False
+
+    sales_data = read_sales_data()
+    for row in sales_data:
+        if row['ID'] == str(item_id):
+            item_found = True
+            row.update(update_data)  # Update row with the new data
+        updated_sales.append(row)
+
     if item_found:
-        print(f"Updated item ID: {item_id} with new amount: {additional_amount}")
+        write_sales_data(updated_sales)
+    return item_found
+
+def update_payment(item_id, additional_amount):
+    try:
+        additional_amount = float(additional_amount)
+    except ValueError:
+        flash(f"Invalid amount: {additional_amount}", 'error')
+        return False
+
+    item_found = False
+    updated_sales = []
+    
+    sales_data = read_sales_data()
+    for row in sales_data:
+        if row['ID'] == str(item_id):
+            item_found = True
+            try:
+                current_amount = float(row['MONTOPAGADO'])
+                new_amount = current_amount + additional_amount
+                row['MONTOPAGADO'] = str(new_amount)
+
+                # Update status based on new amount
+                if new_amount >= float(row['VENTACOP']):
+                    row['STATUS'] = 'VENDIDO'
+                else:
+                    row['STATUS'] = 'DEUDA'
+            except ValueError:
+                flash(f"Error converting amounts for item ID: {item_id}.", 'error')
+        updated_sales.append(row)
+
+    if item_found:
+        write_sales_data(updated_sales)
+    return item_found
+
+@app.route('/update_metodopago', methods=['POST'])
+def update_metodopago():
+    item_id = request.form.get('id')
+    new_metodo_pago = request.form.get('METODOPAGO')
+
+    if not item_id or not new_metodo_pago:
+        flash('Invalid data provided!', 'error')
+        return redirect(url_for('sold_items'))
+
+    # Update the payment method in the CSV file
+    if update_csv(item_id, {'METODOPAGO': new_metodo_pago}):
+        flash(f'Método de Pago actualizado a {new_metodo_pago}!', 'success')
     else:
-        print(f"Item ID: {item_id} not found.")
-
-
+        flash(f'Item ID {item_id} not found.', 'error')
+    
+    return redirect(url_for('sold_items'))
 
 @app.route('/sold_items', methods=['GET', 'POST'])
 def sold_items():
-    sales = load_sales()
-
-    # Convert to float
+    sales = read_sales_data()  # Load the sales data
+    
     for sale in sales:
         sale['VENTACOP'] = float(sale['VENTACOP'])
         sale['MONTOPAGADO'] = float(sale['MONTOPAGADO'])
-
-    # Apply filters
+    
     filter_params = {
-        
         'filter_nombreproducto': request.args.get('filter_nombreproducto', ''),
-         'filter_cliente': request.args.get('filter_cliente', ''),
+        'filter_cliente': request.args.get('filter_cliente', ''),
         'filter_talla': request.args.get('filter_talla', ''),
         'filter_color': request.args.get('filter_color', ''),
         'filter_pieza': request.args.get('filter_pieza', ''),
         'filter_status': request.args.get('filter_status', '')
     }
 
-    # Filter sales based on parameters
+    # Apply filters
     for key, value in filter_params.items():
         if value:
             sales = [sale for sale in sales if value.lower() in sale[key.replace('filter_', '').upper()].lower()]
 
     if request.method == 'POST':
         item_id = request.form.get('id')
-        additional_amount = float(request.form.get('montopagado'))  # Convert to float
+        additional_amount = request.form.get('montopagado')
+        new_metodo_pago = request.form.get('METODOPAGO')  # Get the new payment method
 
-        # Check if the item's status is 'DEUDA' before updating
         sale_to_update = next((s for s in sales if s['ID'] == str(item_id)), None)
         if sale_to_update and sale_to_update['STATUS'] == 'DEUDA':
-            update_payment(item_id, additional_amount)  # Call the function to update
-            flash('Payment updated successfully!', 'success')
+            if update_payment(item_id, additional_amount):
+                flash('Payment updated successfully!', 'success')
+            else:
+                flash('Error updating payment.', 'error')
+                
+            # Update the payment method as well
+            if update_csv(item_id, {'METODOPAGO': new_metodo_pago}):
+                flash(f'Método de Pago actualizado a {new_metodo_pago}!', 'success')
+            else:
+                flash(f'Item ID {item_id} not found for payment method update.', 'error')
+
         else:
             flash('Cannot update payment for this sale.', 'error')
 
-        return redirect(url_for('sold_items'))  # Redirect after processing
+        return redirect(url_for('sold_items'))
 
     return render_template('sold_items.html', sales=sales)
-
-
 
 #FIN RESUMENT VENTAS 
 

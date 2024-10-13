@@ -91,12 +91,16 @@
     </style>
 </head>
 <body>
-    <h1>PANEL ADMINISTRADOR</h1>
+    
+    <h1><img src="{{ url_for('static', filename='img/icono.png') }}" alt="Icon"  width="22%" height="22%"/> MEDGLAD PANEL </h1>
+
+
+
     <button onclick="window.location.href='{{ url_for('seller_dashboard') }}'">AGREGAR INVENTARIO</button>
     <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
     <form method="GET" action="{{ url_for('admin_dashboard') }}">
         <div>
-            <label for="filter_nombreproducto">Filter by Product Name:</label>
+            <label for="filter_nombreproducto">FILTRAR POR NOMBRE PORDUCTO:</label>
             <input type="text" name="filter_nombreproducto" id="filter_nombreproducto" placeholder="Enter product name">
         </div>
         <div>
@@ -104,14 +108,14 @@
             <input type="text" name="filter_marca" id="filter_marca" placeholder="introduce marca">
         </div>
         <div>
-            <label for="filter_talla">Filter by Size:</label>
+            <label for="filter_talla">FILTRAR POR TALLA :</label>
             <select name="filter_talla" id="filter_talla">
                 <option value="">Select Size</option>
                 <!-- TALLA options will be dynamically updated based on PIEZA selection -->
             </select>
         </div>
         <div>
-            <label for="filter_color">Filter by Color:</label>
+            <label for="filter_color">FILTRAR POR COLOR:</label>
             <select name="filter_color" id="filter_color">
                 <option value="">Select Color</option>
                 <option value="WHITE">WHITE</option>
@@ -126,7 +130,7 @@
             </select>
         </div>
         <div>
-            <label for="filter_pieza">Filter by Piece:</label>
+            <label for="filter_pieza">FILTRAR POR TALLA :</label>
             <select name="filter_pieza" id="filter_pieza" onchange="updateSizeOptions()">
                 <option value="">Select Piece</option>
                 <option value="CAMISA">CAMISA</option>
@@ -161,14 +165,14 @@
                     <tr>
                         <th>Select</th>
                         <th>Marca</th>
-                        <th>Product Name</th>
-                        <th>Change COP</th>
+                        <th>NOMBRE PRODUCTO</th>
+                        <th>CAMBIO DE USD- COP</th>
                         <th>Price USD</th>
-                        <th>Price COP</th>
-                        <th>Sale COP</th>
-                        <th>Size</th>
+                        <th>PRECIO EN COP</th>
+                        <th>PRECIO DE VENTA COP</th>
+                        <th>TALLA</th>
                         <th>Color</th>
-                        <th>Piece</th>
+                        <th>TIPO DE PIEZA</th>
                         <th>ID</th>
                     </tr>
                 </thead>
@@ -193,19 +197,19 @@
         </div>
     
         <h3>Sale Details</h3>
-        <label for="cliente">Client Name:</label>
+        <label for="cliente">NOMBRE CLEINTE:</label>
         <input type="text" name="cliente" id="cliente" required>
-        <label for="metodopago">Payment Method:</label>
+        <label for="metodopago">METODOD PAGO:</label>
         <input type="text" name="metodopago" id="metodopago" required>
-        <label for="montopagado">Amount Paid:</label>
+        <label for="montopagado">CUANTO PAGO:</label>
         <input type="number" name="montopagado" id="montopagado" required onchange="updateStatus()">
         <label for="status">Status:</label>
         <select name="status" id="status" required>
             <option value="VENDIDO">VENDIDO</option>
             <option value="DEUDA">DEUDA</option>
         </select>
-        <button type="submit">Sell Items</button>
-        <button onclick="window.location.href='{{ url_for('sold_items') }}'">View Sold Items</button>
+        <button type="submit">MARCAR COMO VENDIDO O PARCIALMENTE VENDIDO</button>
+        <button onclick="window.location.href='{{ url_for('sold_items') }}'">VER VENTAS</button>
     </form>
 
       

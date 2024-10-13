@@ -169,6 +169,7 @@
                         <th>Status</th>
                         <th>CLIENTE</th>
                         <th>Pendiente a Pagar</th> <!-- New column for pending amount -->
+                        <th>METODO_PAGO</th> <!-- New column for payment method -->
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -187,18 +188,20 @@
                         <td>{{ sale.MONTOPAGADO }}</td>
                         <td>{{ sale.ID }}</td>
                         <td>{{ sale.STATUS }}</td>  <!-- Status column -->
-                        <td>{{ sale.CLIENTE }}</td>  <!-- Status column -->
+                        <td>{{ sale.CLIENTE }}</td>  <!-- Client column -->
                         <td>{{ sale.VENTACOP - sale.MONTOPAGADO }}</td>  <!-- Calculate pending amount -->
+                        <td>{{ sale.METODOPAGO }}</td>  <!-- Display payment method -->
                         <td>
                             {% if sale.STATUS == 'DEUDA' %}
                             <form action="{{ url_for('sold_items') }}" method="POST" class="action-form">
                                 <input type="hidden" name="id" value="{{ sale.ID }}">
-                                <input type="number" name="montopagado" required placeholder="Agregar monto" min="0.01" step="0.01">
-                                <button type="submit" class="filter-button">Actualizar Monto</button>
+                                <input type="number" name="montopagado" required placeholder="Agregar monto" min="0" step="0.01" value="0">
+                                <input type="text" name="METODOPAGO" required placeholder="Actualizar método de pago">
+                                <button type="submit" class="filter-button">Actualizar Monto y Método de Pago</button>
                             </form>
-                            {% else %}
-                            <span>Pagado</span> <!-- Indicate that payment has been made -->
-                            {% endif %}
+                        
+                        {% endif %}
+
                         </td>
                     </tr>
                     {% endfor %}
