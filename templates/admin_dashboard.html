@@ -3,135 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
     <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
-        /* Add your existing styles */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             margin: 0;
             padding: 20px;
         }
-
         h1 {
-            text-align: center;
             color: #333;
         }
-
-        .logout-button {
-            position: absolute; /* Position it in the top right corner */
-            top: 20px;
-            right: 20px;
-            padding: 10px 15px; /* Add padding */
-            background-color: #f44336; /* Red background */
-            color: white; /* White text */
-            font-size: 16px; /* Font size */
-            border: none; /* No border */
-            border-radius: 5px; /* Rounded corners */
-            text-decoration: none; /* No underline */
-            transition: background-color 0.3s; /* Smooth background change */
-        }
-
-        .logout-button:hover {
-            background-color: #d32f2f; /* Darker red on hover */
-        }
-
-        .download-button {
-            display: block;
-            width: 200px; /* Fixed width for the button */
-            margin: 0 auto 20px; /* Center the button and add margin */
-            padding: 10px;
-            text-align: center;
-            background-color: #4CAF50; /* Green background */
-            color: white; /* White text */
-            font-size: 18px; /* Font size */
-            border: none; /* No border */
-            border-radius: 5px; /* Rounded corners */
-            text-decoration: none; /* No underline */
-            transition: background-color 0.3s; /* Smooth background change */
-        }
-
-        .download-button:hover {
-            background-color: #45a049; /* Darker green on hover */
-        }
-
         form {
-            text-align: center;
             margin-bottom: 20px;
-        }
-
-        select, button {
-            padding: 10px;
-            margin: 5px;
-            font-size: 16px;
-        }
-
-        .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: auto;
-        }
-
-        .box {
+            padding: 15px;
             background-color: #fff;
             border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            text-align: center;
-            transition: transform 0.2s;
-            cursor: pointer; /* Change cursor to indicate clickable box */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .table-container {
+            max-height: 300px; /* Set a maximum height for the table */
+            overflow-y: auto;  /* Enable vertical scrolling */
+            margin-top: 20px;
+            background-color: #d2d4cb;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #12e02e;
+        }
+        th {
+            background-color: #dd51d1;
+        }
+        tr:hover {
+            background-color: #ddb505;
+        }
+        
+        .totals, .totals2, .totals3 {
+            display: inline-block;             
+            width: 30%;                        
+            padding: 15px;                    
+            margin-right: 10px;               
+            background-color: #fff;           
+            border-radius: 5px;               
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+            text-align: center;               
         }
 
-        .box:hover {
-            transform: translateY(-5px);
+        .totals3 {
+            margin-right: 0;                  
         }
 
-        .box h3 {
-            margin: 0;
-            font-size: 24px;
-            color: #4CAF50; /* Change to a suitable color for your theme */
+        .totals-container {
+            text-align: center;               
+            margin-top: 20px;                 
         }
 
-        .box p {
-            margin: 10px 0 0;
-            font-size: 18px;
-            color: #555;
-        }
-
-        /* Add additional styling as needed */
     </style>
 </head>
 <body>
-    <h1>Panel Administrador</h1>
-
-    <!-- Logout Button -->
-    <a href="{{ url_for('logout') }}" class="logout-button">CERRAR SESIÓN</a>
-
-    <!-- Download Database Button -->
-    <a href="{{ url_for('download_report') }}" class="download-button">DESCARGAR BASE DE DATOS</a>
-
-    <form method="POST" action="{{ url_for('admin_dashboard') }}">
-        <label for="branch">SELECIONA SUCURSAL:</label>
-        <select name="branch" id="branch">
-            <option value="" {% if selected_branch is none %}selected{% endif %}>TOTAL SUCURSALES</option>
-            {% for branch in branches %}
-                <option value="{{ branch }}" {% if branch == selected_branch %}selected{% endif %}>SUCURSAL {{ branch }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit">Filtrar</button>
+    <h1>PANEL ADMINISTRADOR</h1>
+    <button onclick="window.location.href='{{ url_for('seller_dashboard') }}'">AGREGAR INVENTARIO</button>
+    <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
+    <form method="GET" action="{{ url_for('admin_dashboard') }}">
+        <div>
+            <label for="filter_nombreproducto">Filter by Product Name:</label>
+            <input type="text" name="filter_nombreproducto" id="filter_nombreproducto" placeholder="Enter product name">
+        </div>
+        <div>
+            <label for="filter_marca">MARCA:</label>
+            <input type="text" name="filter_marca" id="filter_marca" placeholder="introduce marca">
+        </div>
+        <div>
+            <label for="filter_talla">Filter by Size:</label>
+            <select name="filter_talla" id="filter_talla">
+                <option value="">Select Size</option>
+                <!-- TALLA options will be dynamically updated based on PIEZA selection -->
+            </select>
+        </div>
+        <div>
+            <label for="filter_color">Filter by Color:</label>
+            <select name="filter_color" id="filter_color">
+                <option value="">Select Color</option>
+                <option value="WHITE">WHITE</option>
+                <option value="ROYAL">ROYAL</option>
+                <option value="EGG_PLANT">EGG_PLANT</option>
+                <option value="RED">RED</option>
+                <option value="CIELO">CIELO</option>
+                <option value="BLACK">BLACK</option>
+                <option value="OLIVE">OLIVE</option>
+                <option value="VINO">VINO</option>
+                <option value="NAVY">NAVY</option>
+            </select>
+        </div>
+        <div>
+            <label for="filter_pieza">Filter by Piece:</label>
+            <select name="filter_pieza" id="filter_pieza" onchange="updateSizeOptions()">
+                <option value="">Select Piece</option>
+                <option value="CAMISA">CAMISA</option>
+                <option value="PANTALON">PANTALON</option>
+                <option value="SET">SET</option>
+            </select>
+        </div>
+        <button type="submit">Filter</button>
     </form>
 
-    <div class="container">
-        {% for ddate, total in total_sales.items() %}
-            <div class="box" onclick="window.location.href='/details/{{ ddate }}?branch={{ selected_branch or '' }}'">
-                <h3>{{ ddate }}</h3>
-                <p>VENTAS TOTALES USD: ${{ total }}</p>
-            </div>
-        {% endfor %}
+    <div class="totals">
+        <h2>CUANTO HE VENDIDO: {{ total_sales }}</h2>
     </div>
+    <div class="totals2">
+        <h2>LO QUE DEBO: {{ total_debt }}</h2>
+    </div>
+    <div class="totals3">
+        <h2>GANANCIA NETA: {{ net_profit }}</h2>
+    </div>
+    <form action="{{ url_for('download_inventory') }}" method="get">
+        <button type="submit" class="btn btn-primary">Download Inventory Report</button>
+    </form>
     
+    <form action="{{ url_for('download_sales') }}" method="get">
+        <button type="submit" class="btn btn-secondary">Download Sales Report</button>
+    </form>
+    
+    <form method="POST" action="{{ url_for('admin_dashboard') }}">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Marca</th>
+                        <th>Product Name</th>
+                        <th>Change COP</th>
+                        <th>Price USD</th>
+                        <th>Price COP</th>
+                        <th>Sale COP</th>
+                        <th>Size</th>
+                        <th>Color</th>
+                        <th>Piece</th>
+                        <th>ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inventory %}
+                    <tr>
+                        <td><input type="checkbox" name="sold_items" value="{{ item['ID'] }}" onclick="updateStatus()"></td>
+                        <td>{{ item.MARCA }}</td>
+                        <td>{{ item.NOMBREPRODUCTO }}</td>
+                        <td>{{ item.CAMBIOCOP }}</td>
+                        <td>{{ item.PRECIOUSD }}</td>
+                        <td>{{ item.PRECIOCOP }}</td>
+                        <td>{{ item.VENTACOP }}</td>
+                        <td>{{ item.TALLA }}</td>
+                        <td>{{ item.COLOR }}</td>
+                        <td>{{ item.PIEZA }}</td>
+                        <td>{{ item.ID }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    
+        <h3>Sale Details</h3>
+        <label for="cliente">Client Name:</label>
+        <input type="text" name="cliente" id="cliente" required>
+        <label for="metodopago">Payment Method:</label>
+        <input type="text" name="metodopago" id="metodopago" required>
+        <label for="montopagado">Amount Paid:</label>
+        <input type="number" name="montopagado" id="montopagado" required onchange="updateStatus()">
+        <label for="status">Status:</label>
+        <select name="status" id="status" required>
+            <option value="VENDIDO">VENDIDO</option>
+            <option value="DEUDA">DEUDA</option>
+        </select>
+        <button type="submit">Sell Items</button>
+        <button onclick="window.location.href='{{ url_for('sold_items') }}'">View Sold Items</button>
+    </form>
+
+      
+
+    <script>
+        function updateStatus() {
+            const montopagado = parseFloat(document.getElementById('montopagado').value);
+            const selectedItems = document.querySelectorAll('input[name="sold_items"]:checked');
+            const statusSelect = document.getElementById('status');
+
+            // Assume all selected items have the same price for simplicity, or adjust logic to check all
+            if (selectedItems.length > 0) {
+                const selectedSalePrice = parseFloat(selectedItems[0].closest('tr').cells[5].textContent); // VENTACOP column
+                if (montopagado >= selectedSalePrice) {
+                    statusSelect.value = "VENDIDO";
+                } else {
+                    statusSelect.value = "DEUDA";
+                }
+            } else {
+                statusSelect.value = "DEUDA"; // Default to DEUDA if no items are selected
+            }
+        }
+
+        function updateSizeOptions() {
+            const piezaSelect = document.getElementById('filter_pieza');
+            const tallaSelect = document.getElementById('filter_talla');
+            const selectedPieza = piezaSelect.value;
+
+            // Clear current options
+            tallaSelect.innerHTML = '<option value="">Select Size</option>';
+
+            // Add new size options based on selected PIEZA
+            if (selectedPieza === 'CAMISA') {
+                const camisaSizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL'];
+                camisaSizes.forEach(size => {
+                    const option = document.createElement('option');
+                    option.value = size;
+                    option.textContent = size;
+                    tallaSelect.appendChild(option);
+                });
+            } else if (selectedPieza === 'PANTALON') {
+                const pantalonSizes = ['XXSP', 'XSP', 'SP', 'MP', 'LP', 'XLP', '2XLP',
+                                       'XXSR', 'XSR', 'SR', 'MR', 'LR', 'XLR', '2XLR',
+                                       'XXST', 'XST', 'ST', 'MT', 'LT', 'XLT', '2XLT'];
+                pantalonSizes.forEach(size => {
+                    const option = document.createElement('option');
+                    option.value = size;
+                    option.textContent = size;
+                    tallaSelect.appendChild(option);
+                });
+            }else if (selectedPieza === 'SET') {
+                const setSizes = [
+                                        'XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL',
+                                       'XXSP', 'XSP', 'SP', 'MP', 'LP', 'XLP', '2XLP',
+                                       'XXSR', 'XSR', 'SR', 'MR', 'LR', 'XLR', '2XLR',
+                                       'XXST', 'XST', 'ST', 'MT', 'LT', 'XLT', '2XLT'];
+                setSizes.forEach(size => {
+                    const option = document.createElement('option');
+                    option.value = size;
+                    option.textContent = size;
+                    tallaSelect.appendChild(option);
+                });
+            }
+
+            
+        }
+    </script>
 </body>
 </html>

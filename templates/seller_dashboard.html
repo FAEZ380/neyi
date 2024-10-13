@@ -4,90 +4,422 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seller Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <script>
-        function confirmReport() {
-            const amountInput = document.getElementById('amount');
-            const amount = parseFloat(amountInput.value);
-            if (isNaN(amount) || amount < 0.1) {
-                alert('MINIMO 0.1 USD PARE REPORTAR.');
-                return false; // Prevent form submission
-            }
-            return confirm(`ESTA SEGURO ENVIAR REPORTE POR : ${amount.toFixed(2)} USD?`);
-        }
-    </script>
     <style>
-        .logout-button {
-            position: absolute; /* Position it in the top right corner */
-            top: 20px;
-            right: 20px;
-            padding: 10px 15px; /* Add padding */
-            background-color: #f44336; /* Red background */
-            color: white; /* White text */
-            font-size: 16px; /* Font size */
-            border: none; /* No border */
-            border-radius: 5px; /* Rounded corners */
-            text-decoration: none; /* No underline */
-            transition: background-color 0.3s; /* Smooth background change */
+
+.btn-eliminar {
+        background-color: #d9534f; /* Color rojo */
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .btn-eliminar:hover {
+        background-color: #c9302c; /* Color rojo más oscuro al pasar el ratón */
+    }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin: 20px 0;
         }
 
-        .logout-button:hover {
-            background-color: #d32f2f; /* Darker red on hover */
+        form {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .inventory-container {
+            max-height: 400px; /* Adjust height as needed */
+            overflow-y: auto; /* Enable vertical scrolling */
+            border: 1px solid #ccc; /* Optional: Add a border around the container */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse; /* Optional: Collapse borders for better appearance */
+        }
+
+        th, td {
+            padding: 8px; /* Adjust padding as needed */
+            text-align: left; /* Adjust text alignment as needed */
+        }
+
+        thead th {
+            position: sticky; /* Make the header sticky */
+            top: 0; /* Position it at the top of the scrolling container */
+            background-color: #10b872; /* Background color for the header */
+            z-index: 10; /* Ensure the header stays on top of the other content */
+            border-bottom: 2px solid #ccc; /* Optional: Add a bottom border to the header */
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2; /* Optional: Zebra striping for better readability */
+        }
+                button {
+                    background-color: #5cb85c;
+                    color: white;
+                    padding: 10px 15px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 16px;
+                    width: 100%;
+                }
+
+        button:hover {
+            background-color: #4cae4c;
+        }
+
+        /* Scrollbar style */
+        .inventory-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #5cb85c;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #337ab7;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgb(0,0,0); 
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; 
+            max-width: 400px; 
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .flashes {
+            list-style-type: none;
+            padding: 0;
+        }
+        .flashes li {
+            background-color: #ffcccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid red;
+            color: red;
         }
     </style>
+    <script>
+        function calculateVENTACOP(cambioCop, precioUSD, pieza) {
+            const precioCOP = cambioCop * precioUSD; // Get precioUSD as a parameter
+            let ventacop;
+
+            if (pieza === "CAMISA") {
+                ventacop = Math.round(precioCOP * 1.5154);
+            } else if (pieza === "PANTALON") {
+                ventacop = Math.round(precioCOP * 1.545);
+            }
+
+            return ventacop;
+        }
+
+        // Initialize size options when the page loads
+        window.onload = function() {
+            updateSizeOptions(); // Populate the size options based on default PIEZA
+        };
+
+        function updateSizeOptions() {
+    const piezaSelect = document.getElementById('pieza');
+    const tallaSelect = document.getElementById('talla');
+    const talla2Select = document.getElementById('talla2');
+    const talla2Label = document.getElementById('talla2-label');
+    const selectedPieza = piezaSelect.value;
+
+    // Clear current options
+    tallaSelect.innerHTML = '';
+    talla2Select.innerHTML = '';
+
+    // Add new size options based on selected PIEZA
+    if (selectedPieza === 'CAMISA') {
+        const camisaSizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL'];
+        camisaSizes.forEach(size => {
+            const option = document.createElement('option');
+            option.value = size;
+            option.textContent = size;
+            tallaSelect.appendChild(option);
+        });
+        talla2Label.style.display = 'none'; // Hide second size
+        talla2Select.style.display = 'none'; // Hide second size dropdown
+    } else if (selectedPieza === 'PANTALON' || selectedPieza === 'SET') {
+        const pantalonSizes = [
+            'XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL',
+            'XXSP', 'XSP', 'SP', 'MP', 'LP', 'XLP', '2XLP',
+            'XXSR', 'XSR', 'SR', 'MR', 'LR', 'XLR', '2XLR',
+            'XXST', 'XST', 'ST', 'MT', 'LT', 'XLT', '2XLT'
+        ];
+        pantalonSizes.forEach(size => {
+            const option = document.createElement('option');
+            option.value = size;
+            option.textContent = size;
+            tallaSelect.appendChild(option);
+        });
+
+        if (selectedPieza === 'SET') {
+            talla2Label.style.display = 'block'; // Show second size label
+            talla2Select.style.display = 'block'; // Show second size dropdown
+            pantalonSizes.forEach(size => {
+                const option = document.createElement('option');
+                option.value = size;
+                option.textContent = size;
+                talla2Select.appendChild(option);
+            });
+        } else {
+            talla2Label.style.display = 'none'; // Hide second size for other pieces
+            talla2Select.style.display = 'none'; // Hide second size dropdown
+        }
+    }
+}
+
+        // Modal functions
+        function openModal() {
+            const marca = document.getElementById("marca").value;
+            const nombreProducto = document.getElementById("nombreproducto").value;
+            const pieza = document.getElementById("pieza").value;
+            const cambioCop = document.getElementById("cambiocop").value;
+            const precioUSD = document.getElementById("preciousd").value; // Get precioUSD
+            const talla = document.getElementById("talla").value;
+            const talla2 = document.getElementById("talla2").value;
+            const color = document.getElementById("color").value;
+            const ventacop  = document.getElementById("precioVentaCop").value;
+            // Update modal content
+            document.getElementById("modal-marca").innerText = marca;
+            document.getElementById("modal-nombreproducto").innerText = nombreProducto;
+            document.getElementById("modal-pieza").innerText = pieza;
+            document.getElementById("modal-cambiocop").innerText = cambioCop;
+            document.getElementById("modal-preciousd").innerText = precioUSD;
+            document.getElementById("modal-talla").innerText = talla;
+            document.getElementById("modal-talla2").innerText = talla2;
+            document.getElementById("modal-color").innerText = color;
+            document.getElementById("modal-ventacop").innerText = ventacop;
+            // Calculate and display VENTACOP in the modal
+            //const ventacop = calculateVENTACOP(cambioCop, precioUSD, pieza);
+            
+
+            document.getElementById("myModal").style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById("myModal").style.display = "none";
+        }
+
+        function confirmAddToInventory() {
+            const form = document.getElementById("inventoryForm");
+            closeModal();
+            form.submit();
+        }
+    </script>
 </head>
+
 <body>
-    <h1>Dashboard del Vendedor</h1>
+    <h1>PANEL INGRESO Y MODIFICACION DE INVENTARIO</h1>
     
-    <!-- Logout Button -->
-    <a href="{{ url_for('logout') }}" class="logout-button">CERRAR SESIÓN</a>
+    <!-- Form to add new item to inventory -->
+    <form id="inventoryForm" action="{{ url_for('seller_dashboard') }}" method="POST" onsubmit="openModal(); return false;">
 
-    <div class="report-input">
-        <form method="POST" action="{{ url_for('seller_dashboard') }}" onsubmit="return confirmReport()">
-            <label for="amount">VENTAS DOLARES (USD):</label>
-            <input type="number" id="amount" step="0.01" name="amount" required aria-label="Ingrese el monto de ventas en dólares" title="Monto mínimo 0.1 USD">
-            <button type="submit" class="submit-button">SUBIR REPORTE</button>
-        </form>
+        <label for="marca">MARCA:</label>
+        <input type="text" id="marca" name="marca" required><br>
+
+        <label for="nombreproducto">NOMBREPRODUCTO:</label>
+        <input type="text" id="nombreproducto" name="nombreproducto" required><br>
+        
+        <label for="pieza">TIPO DE PRENDA:</label>
+        <select id="pieza" name="pieza" onchange="updateSizeOptions()" required>
+            <option value="CAMISA">CAMISA</option>
+            <option value="PANTALON">PANTALON</option>
+            <option value="SET">SET</option>
+        </select><br>
+        
+        <label for="cambiocop">CAMBIOCOP:</label>
+        <input type="number" id="cambiocop" name="cambiocop" required><br>
+        
+        <label for="preciousd">PRECIOUSD:</label>
+        <input type="number" id="preciousd" name="preciousd" required><br>
+
+        <label for="precioVentaCop">VENTACOP:</label>
+        <input type="number" id="precioVentaCop" name="precioVentaCop" required><br>
+        
+        <label for="talla">TALLA:</label>
+        <select id="talla" name="talla" required></select><br>
+        <label for="talla2" id="talla2-label" style="display: none;">TALLA 2:</label>
+        <select id="talla2" name="talla2" style="display: none;"></select><br>
+        
+         <label for="color">Color:</label>
+        <select id="color" name="color" required>
+            <option value="WHITE">WHITE</option>
+            <option value="ROYAL">ROYAL</option>
+            <option value="EGG_PLANT">EGG_PLANT</option>
+            <option value="RED">RED</option>
+            <option value="CIELO">CIELO</option>
+            <option value="BLACK">BLACK</option>
+            <option value="OLIVE">OLIVE</option>
+            <option value="VINO">VINO</option>
+            <option value="NAVY">NAVY</option>
+        </select><br>
+        <button type="submit">Agregar a Inventario</button>
+    </form>
+<!-- Inventory Table -->
+<div class="inventory-container">
+    <table>
+        <thead>
+            <tr>
+                <th>MARCA</th>
+                <th>Nombre del Producto</th>
+                <th>Cambio COP</th>
+                <th>Precio USD</th>
+                <th>Precio en COP (Costo)</th>
+                <th>Precio de Venta en COP</th>
+                <th>Talla</th>
+                <th>Color</th>
+                <th>Tipo de Prenda</th>
+                <th>ID</th>
+                <th>ACCIONES</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in inventory %}
+            <tr>
+                <td>{{ item.MARCA }}</td>
+                <td>{{ item.NOMBREPRODUCTO }}</td>
+                <td>{{ item.CAMBIOCOP }}</td>
+                <td>{{ item.PRECIOUSD }}</td>
+                <td>{{ item.PRECIOCOP}}</td>
+                <td>{{ item.VENTACOP }}</td>
+                <td>{{ item.TALLA }}</td>
+                <td>{{ item.COLOR }}</td>
+                <td>{{ item.PIEZA }}</td>
+                <td>{{ item.ID }}</td>
+                <td>
+                    <form action="{{ url_for('delete_item', item_id=item.ID) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn-eliminar" onclick="return confirm('¿Estás seguro de que deseas eliminar este item?');">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+    <!-- Modal for confirming item addition -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Confirmar Agregar al Inventario</h2>
+            <p><strong>MARCA:</strong> <span id="modal-marca"></span></p>
+            <p><strong>NOMBREPRODUCTO:</strong> <span id="modal-nombreproducto"></span></p>
+            <p><strong>TIPO DE PRENDA:</strong> <span id="modal-pieza"></span></p>
+            <p><strong>CAMBIOCOP:</strong> <span id="modal-cambiocop"></span></p>
+            <p><strong>PRECIOUSD:</strong> <span id="modal-preciousd"></span></p>
+            <p><strong>TALLA1:</strong> <span id="modal-talla"></span></p>
+            
+            <p><strong>COLOR:</strong> <span id="modal-color"></span></p>
+            <p><strong>VENTACOP:</strong> <span id="modal-ventacop"></span></p>
+            <button onclick="confirmAddToInventory()">Confirmar</button>
+        </div>
     </div>
 
-    <h2>Sus Reportes</h2>
-    <div class="report-history">
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha de Reporte (Ddate)</th>
-                    <th>Fecha de Registro</th>
-                    <th>Hora</th>
-                    <th>Monto (USD)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if reports|length == 0 %}
-                    <tr>
-                        <td colspan="4">No hay reportes para mostrar.</td>
-                    </tr>
-                {% else %}
-                    {% for report in reports %}
-                    <tr>
-                        <td>{{ report.Ddate }}</td> <!-- Display the effective report date -->
-                        <td>{{ report.date }}</td>  <!-- Original submission date -->
-                        <td>{{ report.time }}</td>
-                        <td>{{ report.amount }}</td>
-                    </tr>
-                    {% endfor %}
-                {% endif %}
-            </tbody>
-        </table>
-    </div>
-
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="alert">
+    <ul class="flashes">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
                 {% for message in messages %}
-                    <p>{{ message }}</p>
+                    <li>{{ message }}</li>
                 {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
+            {% endif %}
+        {% endwith %}
+    </ul>
+
+    <a href="{{ url_for('admin_dashboard') }}">VOVLVER PANEL ADMINISTRADOR</a>
 </body>
 </html>
