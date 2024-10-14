@@ -4,6 +4,8 @@ import os
 import pandas as  pd
 from flask import send_file, redirect, url_for
 import os
+import zipfile
+import io
 from functools import wraps
 
 app = Flask(__name__)
@@ -34,12 +36,14 @@ def update_csv(item_id, update_data):
     if item_found:
         write_sales_data(updated_sales)
     return item_found
-
-def update_payment(item_id, additional_amount):
+# OJO CON STO######################################################3333
+def update_payment(item_id, additional_amount1,additional_amount2):
     try:
-        additional_amount = float(additional_amount)
+        additional_amount1 = float(additional_amount1)
+        additional_amount2 = float(additional_amount2)
     except ValueError:
-        flash(f"Invalid amount: {additional_amount}", 'error')
+        flash(f"Invalid amount1: {additional_amount1}", 'error')
+        flash(f"Invalid amount2: {additional_amount2}", 'error')
         return False
 
     item_found = False
@@ -50,12 +54,17 @@ def update_payment(item_id, additional_amount):
         if row['ID'] == str(item_id):
             item_found = True
             try:
-                current_amount = float(row['MONTOPAGADO'])
-                new_amount = current_amount + additional_amount
-                row['MONTOPAGADO'] = str(new_amount)
+                current_amount1 = float(row['VMETODOPAGO1'])
+                new_amount1 = current_amount1 + additional_amount1
+                current_amount2 = float(row['VMETODOPAGO2'])
+                new_amount2 = current_amount2 + additional_amount2
+                
+                row['VMETODOPAGO1'] = float(new_amount1)
+                row['VMETODOPAGO2'] =float(new_amount2)
+                row['MONTOPAGADO'] =   new_amount1+new_amount2
 
                 # Update status based on new amount
-                if new_amount >= float(row['VENTACOP']):
+                if   float(row['MONTOPAGADO']) >= float(row['VENTACOP']):
                     row['STATUS'] = 'VENDIDO'
                 else:
                     row['STATUS'] = 'DEUDA'
@@ -66,23 +75,36 @@ def update_payment(item_id, additional_amount):
     if item_found:
         write_sales_data(updated_sales)
     return item_found
-
+################################################################333
 @app.route('/update_metodopago', methods=['POST'])
 def update_metodopago():
+    print("Updating payment method...")
     item_id = request.form.get('id')
-    new_metodo_pago = request.form.get('METODOPAGO')
+    new_metodo_pago1 = request.form.get('VMETODOPAGO1')
+    new_metodo_pago2 = request.form.get('VMETODOPAGO2')
+    
+    print(f"Item ID: {item_id}, MetodoPago1: {new_metodo_pago1}, MetodoPago2: {new_metodo_pago2}")
 
-    if not item_id or not new_metodo_pago:
+    if not item_id or not new_metodo_pago1 and not new_metodo_pago2:
         flash('Invalid data provided!', 'error')
         return redirect(url_for('sold_items'))
 
     # Update the payment method in the CSV file
-    if update_csv(item_id, {'METODOPAGO': new_metodo_pago}):
-        flash(f'Método de Pago actualizado a {new_metodo_pago}!', 'success')
+    if update_csv(item_id, {'VMETODOPAGO1': new_metodo_pago1}):
+        flash(f'Método de Pago actualizado a {new_metodo_pago1}!', 'success')
+    else:
+        flash(f'Item ID {item_id} not found.', 'error')
+    
+    if update_csv(item_id, {'VMETODOPAGO2': new_metodo_pago2}):
+        flash(f'Método de Pago actualizado a {new_metodo_pago2}!', 'success')
     else:
         flash(f'Item ID {item_id} not found.', 'error')
     
     return redirect(url_for('sold_items'))
+
+
+
+
 
 @app.route('/sold_items', methods=['GET', 'POST'])
 def sold_items():
@@ -108,21 +130,21 @@ def sold_items():
 
     if request.method == 'POST':
         item_id = request.form.get('id')
-        additional_amount = request.form.get('montopagado')
-        new_metodo_pago = request.form.get('METODOPAGO')  # Get the new payment method
-
+        additional_amount1 = request.form.get('VMETODOPAGO1')
+        additional_amount2 = request.form.get('VMETODOPAGO2')
+        
         sale_to_update = next((s for s in sales if s['ID'] == str(item_id)), None)
         if sale_to_update and sale_to_update['STATUS'] == 'DEUDA':
-            if update_payment(item_id, additional_amount):
+            if update_payment(item_id, additional_amount1,additional_amount2):
                 flash('Payment updated successfully!', 'success')
             else:
                 flash('Error updating payment.', 'error')
                 
             # Update the payment method as well
-            if update_csv(item_id, {'METODOPAGO': new_metodo_pago}):
-                flash(f'Método de Pago actualizado a {new_metodo_pago}!', 'success')
-            else:
-                flash(f'Item ID {item_id} not found for payment method update.', 'error')
+            #if update_csv(item_id, {'METODOPAGO': new_metodo_pago}):
+                #flash(f'Método de Pago actualizado a {new_metodo_pago}!', 'success')
+            #else:
+                #flash(f'Item ID {item_id} not found for payment method update.', 'error')
 
         else:
             flash('Cannot update payment for this sale.', 'error')
@@ -150,11 +172,25 @@ import csv
 @app.route('/download_inventory')
 @admin_required  # Restricting this route to Admins only
 def download_inventory():
-    path = "inventory.csv"  # Path to your inventory CSV file
-    if os.path.exists(path):
-        return send_file(path, as_attachment=True)  # Send file as attachment
-    else:
-        return "File not found", 404  # Handle the error if file doesn't exist
+    # Specify the paths to your CSV files
+    csv_files = ['sales.csv', 'retiros.csv', 'inventory.csv']
+    
+    # Check if all files exist
+    if not all(os.path.exists(file) for file in csv_files):
+        return "One or more files not found", 404  # Handle the error if any file doesn't exist
+
+    # Create a BytesIO object to hold the zip file in memory
+    zip_buffer = io.BytesIO()
+
+    # Create a zip file
+    with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+        for file in csv_files:
+            zip_file.write(file, os.path.basename(file))  # Add files to the zip
+
+    zip_buffer.seek(0)  # Move to the beginning of the BytesIO buffer
+
+    # Send the zip file as an attachment
+    return send_file(zip_buffer, download_name='inventory_files.zip', as_attachment=True, mimetype='application/zip')
 
 # Route to download sales CSV
 @app.route('/download_sales')
@@ -203,7 +239,6 @@ def load_inventory():
 
 
 
-
 def load_sales():
     sales = []
     try:
@@ -213,14 +248,19 @@ def load_sales():
                 sales.append(row)
     except FileNotFoundError:
         with open('sales.csv', mode='w', newline='') as file:
-            writer = csv.DictWriter(file, fieldnames=["MARCA", "NOMBREPRODUCTO", "CAMBIOCOP", "PRECIOUSD", "PRECIOCOP", "VENTACOP", "TALLA", "COLOR", "PIEZA", "ID", 'CLIENTE', 'METODOPAGO', "MONTOPAGADO", "STATUS"])
+            fieldnames = [
+                "MARCA", "NOMBREPRODUCTO", "CAMBIOCOP", "PRECIOUSD", 
+                "PRECIOCOP", "VENTACOP", "TALLA", "COLOR", "PIEZA", 
+                "ID", 'CLIENTE', 'METODOPAGO1', 'METODOPAGO2', 
+                'VMETODOPAGO1', 'VMETODOPAGO2', "MONTOPAGADO", "STATUS"
+            ]
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
 
     # Sort sales first by STATUS (DEUDA first) and then by ID (higher IDs first)
     sales.sort(key=lambda item: int(item['ID']) if item['ID'].isdigit() else -1, reverse=True)
 
     return sales
-
 
 # Add new item to inventory
 @admin_required  # Restricting this route to Admins only
@@ -332,7 +372,12 @@ def save_inventory(inventory):
 # Save sold items to sales CSV
 def save_sales(sold_items):
     with open('sales.csv', mode='a', newline='') as file:
-        fieldnames = ["MARCA","NOMBREPRODUCTO", "CAMBIOCOP", "PRECIOUSD", "PRECIOCOP", "VENTACOP", "TALLA", "COLOR", "PIEZA", "ID", 'CLIENTE', 'METODOPAGO', "MONTOPAGADO","STATUS"]
+        fieldnames = [
+            "MARCA", "NOMBREPRODUCTO", "CAMBIOCOP", "PRECIOUSD", "PRECIOCOP", 
+            "VENTACOP", "TALLA", "COLOR", "PIEZA", "ID", 'CLIENTE', 
+            'METODOPAGO1', 'METODOPAGO2', 'VMETODOPAGO1', 'VMETODOPAGO2', 
+            "MONTOPAGADO", "STATUS"
+        ]
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         for item in sold_items:
             writer.writerow(item)
@@ -356,7 +401,112 @@ def calculate_net_profit(inventory, sales):
         net_profit += profit
 
     return net_profit
+#### CARETERA
 
+
+def write_withdrawals_to_csv(monto, nota, retiroA, filename='retiros.csv'):
+    with open(filename, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([monto, nota, retiroA])  # Write the new withdrawal data
+
+def load_withdrawals():
+    withdrawals = []
+    try:
+        with open('retiros.csv', 'r') as file:
+            reader = csv.reader(file)
+            header = next(reader)  # Read the header
+            if not header:  # Check if the header is empty
+                return withdrawals
+            # Ensure to check if the file is not empty
+            for row in reader:
+                if len(row) < 3:  # Ensure there are enough columns
+                    continue  # Skip rows that don't have enough data
+                withdrawals.append({'Monto': float(row[0]), 'Nota': row[1], 'RetiroA': row[2]})
+    except FileNotFoundError:
+        pass  # File doesn't exist yet, which is okay
+    return withdrawals
+
+@app.route('/create_withdrawal', methods=['POST'])
+def create_withdrawal():
+    monto = float(request.form.get('monto'))  # Convert to float for calculations
+    nota = request.form.get('nota')
+    retiro_a = request.form.get('retiroA')
+
+    # Create a withdrawal object (or dictionary) to save
+    withdrawal = {
+        'Monto': monto,
+        'Nota': nota,
+        'RetiroA': retiro_a
+    }
+
+    # Save withdrawal to your CSV
+    save_withdrawal(withdrawal)  # Implement this function as needed
+
+    flash('Retiro creado exitosamente!', 'success')
+    return redirect(url_for('cartera'))
+
+def save_withdrawal(withdrawal, filename='retiros.csv'):
+    # Append the withdrawal to the CSV file
+    with open(filename, mode='a', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=['Monto', 'Nota', 'RetiroA'])
+        writer.writerow(withdrawal)
+
+def calculate_total_efectivo(sales):
+    """Calculate total efectivo without considering withdrawals."""
+    totalefectivo = sum(float(sale['VMETODOPAGO1']) for sale in sales)
+    return totalefectivo
+
+def calculate_total_transferencia(sales):
+    """Calculate total transferencia without considering withdrawals."""
+    total_transferencia = sum(float(sale['VMETODOPAGO2']) for sale in sales)
+    return total_transferencia
+
+def calculate_efectivo_with_withdrawals(sales, withdrawals):
+    """Calculate total efectivo with withdrawals applied."""
+    totalefectivo = calculate_total_efectivo(sales)
+    
+    # Subtract withdrawals
+    for withdrawal in withdrawals:
+        if withdrawal['RetiroA'] == 'EFECTIVO':
+            totalefectivo -= withdrawal['Monto']  # Ensure this is a float
+
+    return totalefectivo
+
+def calculate_transferencia_with_withdrawals(sales, withdrawals):
+    """Calculate total transferencia with withdrawals applied."""
+    total_transferencia = calculate_total_transferencia(sales)
+    
+    # Subtract withdrawals
+    for withdrawal in withdrawals:
+        if withdrawal['RetiroA'] == 'TRANSFERENCIA':
+            total_transferencia -= withdrawal['Monto']  # Ensure this is a float
+
+    return total_transferencia
+
+
+@app.route('/cartera')
+def cartera():
+    sales = load_sales()  # Load your sales data
+    withdrawals = load_withdrawals()  # Load your withdrawal data
+
+    total_efectivo_without_withdrawals = calculate_total_efectivo(sales)
+    total_transferencia_without_withdrawals = calculate_total_transferencia(sales)
+
+    total_efectivo_with_withdrawals = calculate_efectivo_with_withdrawals(sales, withdrawals)  # Corrected function name
+    total_transferencia_with_withdrawals = calculate_transferencia_with_withdrawals(sales, withdrawals)  # Corrected function name
+
+    return render_template(
+        'cartera.html', 
+        sales=sales, 
+        total_efectivo_without_withdrawals=total_efectivo_without_withdrawals,
+        total_transferencia_without_withdrawals=total_transferencia_without_withdrawals,
+        total_efectivo_with_withdrawals=total_efectivo_with_withdrawals,
+        total_transferencia_with_withdrawals=total_transferencia_with_withdrawals,
+        withdrawals=withdrawals
+    )
+
+
+###############################333
 
 def calculate_total_debt(inventory, sales):
     total_debt = 0.0
@@ -410,8 +560,15 @@ def admin_dashboard():
     if request.method == 'POST':
         selected_ids = request.form.getlist('sold_items')
         cliente = request.form['cliente']
-        metodopago = request.form['metodopago']
-        montopagado = request.form['montopagado']
+        metodopago1 = request.form['metodopago1']
+        metodopago2 = request.form['metodopago2']
+       
+        vmetodopago1 = float(request.form['Vmetodopago1'])  # Ensure this is converted to float
+        vmetodopago2 = float(request.form['Vmetodopago2'])  # Ensure this is converted to float
+        montopagado = vmetodopago1 + vmetodopago2
+
+       
+        
         status = request.form['status']
         
         sold_items = []
@@ -423,7 +580,10 @@ def admin_dashboard():
                 sold_items.append({
                     **item,
                     'CLIENTE': cliente,
-                    'METODOPAGO': metodopago,
+                    'METODOPAGO1': metodopago1,
+                    'VMETODOPAGO1': vmetodopago1,
+                    'METODOPAGO2': metodopago2,
+                    'VMETODOPAGO2': vmetodopago2,
                     'MONTOPAGADO': montopagado,
                     'STATUS': status
                 })

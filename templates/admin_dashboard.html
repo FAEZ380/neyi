@@ -97,6 +97,8 @@
 
 
     <button onclick="window.location.href='{{ url_for('seller_dashboard') }}'">AGREGAR INVENTARIO</button>
+    <button onclick="window.location.href='{{ url_for('cartera') }}'">CARTERA</button>
+
     <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
     <form method="GET" action="{{ url_for('admin_dashboard') }}">
         <div>
@@ -154,10 +156,8 @@
         <button type="submit" class="btn btn-primary">Download Inventory Report</button>
     </form>
     
-    <form action="{{ url_for('download_sales') }}" method="get">
-        <button type="submit" class="btn btn-secondary">Download Sales Report</button>
-    </form>
-    
+  
+   
     <form method="POST" action="{{ url_for('admin_dashboard') }}">
         <div class="table-container">
             <table>
@@ -197,14 +197,29 @@
         </div>
     
         <h3>Sale Details</h3>
-        <label for="cliente">NOMBRE CLEINTE:</label>
+        <label for="cliente">NOMBRE CLIENTE:</label>
         <input type="text" name="cliente" id="cliente" required>
-        <label for="metodopago">METODOD PAGO:</label>
-        <input type="text" name="metodopago" id="metodopago" required>
+
+        <label for="metodopago1">METODO PAGO1:</label>
+        <select id="metodopago1" name="metodopago1" required>
+            <option value="EFECTIVO">EFECTIVO</option>
+            
+        </select><br>
+
+        <input type="number" name="Vmetodopago1" id="Vmetodopago1" oninput="calcularMontoPagado()" step="1" min="0">
+
+        <label for="metodopago2">METODO PAGO2:</label>
+        <select id="metodopago2" name="metodopago2" required>
+           
+            <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+        </select><br>
+
+        <input type="number" name="Vmetodopago2" id="Vmetodopago2" oninput="calcularMontoPagado()" step="1" min="0">
+
         <label for="montopagado">CUANTO PAGO:</label>
-        <input type="number" name="montopagado" id="montopagado" required onchange="updateStatus()">
+        <input type="number" name="montopagado" id="montopagado" required readonly><br><br>
         <label for="status">Status:</label>
-        <select name="status" id="status" required>
+        <select name="status" id="status" required readonly>
             <option value="VENDIDO">VENDIDO</option>
             <option value="DEUDA">DEUDA</option>
         </select>
@@ -215,15 +230,34 @@
       
 
     <script>
+
+
+        function calcularMontoPagado() {
+            const metodoPago1 = parseFloat(document.getElementById("Vmetodopago1").value) || 0;
+            const metodoPago2 = parseFloat(document.getElementById("Vmetodopago2").value) || 0;
+            const montoPagado = metodoPago1 + metodoPago2;
+
+            document.getElementById("montopagado").value = montoPagado;
+            updateStatus();  // Update the status when the montoPagado is calculated
+        }
+  
+
+
+
         function updateStatus() {
-            const montopagado = parseFloat(document.getElementById('montopagado').value);
+            const montopagado = parseFloat(document.getElementById('montopagado').value) || 0;
             const selectedItems = document.querySelectorAll('input[name="sold_items"]:checked');
             const statusSelect = document.getElementById('status');
 
-            // Assume all selected items have the same price for simplicity, or adjust logic to check all
             if (selectedItems.length > 0) {
-                const selectedSalePrice = parseFloat(selectedItems[0].closest('tr').cells[5].textContent); // VENTACOP column
-                if (montopagado >= selectedSalePrice) {
+                // Calculate the total sale price of the selected items
+                let totalSalePrice = 0;
+                selectedItems.forEach(item => {
+                    totalSalePrice += parseFloat(item.closest('tr').cells[6].textContent); // VENTACOP column
+                });
+
+                // Update status based on montopagado vs total sale price
+                if (montopagado >= totalSalePrice) {
                     statusSelect.value = "VENDIDO";
                 } else {
                     statusSelect.value = "DEUDA";

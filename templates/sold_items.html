@@ -169,7 +169,10 @@
                         <th>Status</th>
                         <th>CLIENTE</th>
                         <th>Pendiente a Pagar</th> <!-- New column for pending amount -->
-                        <th>METODO_PAGO</th> <!-- New column for payment method -->
+                        <th>METODO_PAGO1</th> <!-- New column for payment method -->
+                        <th>METODO_PAGO2</th> <!-- New column for payment method -->
+                        <th>VMETODO_PAGO1</th> <!-- New column for payment method -->
+                        <th>VMETODO_PAGO2</th> <!-- New column for payment method -->
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -190,14 +193,23 @@
                         <td>{{ sale.STATUS }}</td>  <!-- Status column -->
                         <td>{{ sale.CLIENTE }}</td>  <!-- Client column -->
                         <td>{{ sale.VENTACOP - sale.MONTOPAGADO }}</td>  <!-- Calculate pending amount -->
-                        <td>{{ sale.METODOPAGO }}</td>  <!-- Display payment method -->
+                        <td>{{ sale.METODOPAGO1 }}</td>  <!-- Display payment method -->
+                        <td>{{ sale.METODOPAGO2 }}</td>  <!-- Display payment method -->
+                        <td>{{ sale.VMETODOPAGO1 }}</td>  <!-- Display payment method -->
+                        <td>{{ sale.VMETODOPAGO2 }}</td>  <!-- Display payment method -->
                         <td>
                             {% if sale.STATUS == 'DEUDA' %}
                             <form action="{{ url_for('sold_items') }}" method="POST" class="action-form">
                                 <input type="hidden" name="id" value="{{ sale.ID }}">
-                                <input type="number" name="montopagado" required placeholder="Agregar monto" min="0" step="0.01" value="0">
-                                <input type="text" name="METODOPAGO" required placeholder="Actualizar método de pago">
-                                <button type="submit" class="filter-button">Actualizar Monto y Método de Pago</button>
+
+
+                                
+                                <input type="number" name="VMETODOPAGO1" required placeholder="ACTUALIZAR EFECTIVO">
+                                <input type="number" name="VMETODOPAGO2" required placeholder="ACTUALIZAR TRANSFERENCIA">
+                                <button type="submit" class="filter-button">Actualizar Montos a Método de Pagos</button>
+
+
+
                             </form>
                         
                         {% endif %}

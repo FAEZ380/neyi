@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartera</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Style to set fixed height and enable scrolling */
+        .table-container {
+            max-height: 300px; /* Set the height according to your preference */
+            overflow-y: auto; /* Enable vertical scrolling */
+            border: 1px solid #dee2e6; /* Add a border for better visibility */
+            border-radius: 0.25rem; /* Add rounded corners */
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center">Cartera</h2>
+        
+        <!-- Sales Table -->
+        <h3 class="text-center">Ventas</h3>
+        <div class="table-container">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>EFECTIVO</th>
+                        <th>TRANSFERENCIA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td>{{ sale['ID'] }}</td>
+                        <td>{{ sale['VMETODOPAGO1'] }}</td>
+                        <td>{{ sale['VMETODOPAGO2'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><strong>Total sin retiros</strong></td>
+                        <td><strong>{{ total_efectivo_without_withdrawals }}</strong></td>
+                        <td><strong>{{ total_transferencia_without_withdrawals }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total con retiros</strong></td>
+                        <td><strong>{{ total_efectivo_with_withdrawals }}</strong></td>
+                        <td><strong>{{ total_transferencia_with_withdrawals }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Withdrawals Table -->
+        <h3 class="text-center">Retiros</h3>
+        <div class="table-container">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Monto</th>
+                        <th>Nota</th>
+                        <th>Retiro A</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for withdrawal in withdrawals %}
+                    <tr>
+                        <td>{{ withdrawal['Monto'] }}</td>
+                        <td>{{ withdrawal['Nota'] }}</td>
+                        <td>{{ withdrawal['RetiroA'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Button to Open the Modal -->
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#withdrawalModal">
+            Crear Retiro
+        </button>
+
+        <!-- Modal -->
+        <div class="modal fade" id="withdrawalModal" tabindex="-1" role="dialog" aria-labelledby="withdrawalModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="withdrawalModalLabel">Crear Retiro</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{{ url_for('create_withdrawal') }}" method="post">
+                            <div class="form-group">
+                                <label for="monto">Monto</label>
+                                <input type="number" class="form-control" id="monto" name="monto" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="nota">Nota</label>
+                                <input type="text" class="form-control" id="nota" name="nota" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="retiroA">Retiro A</label>
+                                <select class="form-control" id="retiroA" name="retiroA" required>
+                                    <option value="EFECTIVO">Efectivo</option>
+                                    <option value="TRANSFERENCIA">Transferencia</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Crear Retiro</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
